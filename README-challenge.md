@@ -42,6 +42,8 @@ docker compose exec app chmod -R 775 storage bootstrap/cache
 
 ```
 
+---
+
 ### Probar rápido (curl)
 
 ```bash
@@ -67,13 +69,16 @@ curl -X POST http://localhost:8080/api/orders/1/advance
 
 # Avanzar a delivered (se borra de DB y cache)
 curl -X POST http://localhost:8080/api/orders/1/advance
-
+---
 ```
 ### Test
+```bash
 docker compose exec app php artisan test
 
-### Arquitectura (SOLID)
+```
 
+### Arquitectura (SOLID)
+```bash
 -app/Http/Controllers/OrderController.php — capa HTTP.
 
 -app/Http/Requests/StoreOrderRequest.php — validación (Form Request).
@@ -85,8 +90,10 @@ docker compose exec app php artisan test
 -app/Models/Order.php, app/Models/OrderItem.php — modelos y relaciones.
 
 routes/api.php — rutas REST.
-
+```
+---
 ## Estructura del repo(resumen)
+```bash
 app/
   Http/
     Controllers/OrderController.php
@@ -104,3 +111,46 @@ docker-compose.yml
 nginx.conf
 .env.docker
 README.md
+
+```
+---
+## Respuestas (breves) a las preguntas opcionales
+```bash
+
+1- Escalabilidad con alta concurrencia
+
+Cache de lecturas calientes (Redis, TTL corto, invalidación selectiva).
+
+Bloqueo transaccional en advance (o optimistic locking).
+
+Paginación y respuestas lean; índices correctos.
+
+Pool de conexiones DB y timeouts sensatos.
+
+Autoscaling del PHP-FPM/web; CDN/NGINX para estáticos.
+
+Observabilidad (logs/metrics/traces) + alertas.
+
+2- Desacoplar dominio de Laravel/Eloquent
+
+Arquitectura Hexagonal (Ports & Adapters):
+
+Domain (Entidades, VOs, Servicios de dominio).
+
+Application (casos de uso).
+
+Infra (Eloquent como adapter de OrderRepositoryInterface).
+
+Usar DTOs/Mappers para salir de Eloquent en el límite.
+
+Domain Events y servicios puros sin depender del framework.
+
+3- Versionado en producción
+
+URI versioning (/api/v1/..., /api/v2/...) con route groups separados.
+
+Mantener contrato estable; deprecations con fechas.
+
+Tests por versión; changelogs y semver a nivel de API.
+
+```
