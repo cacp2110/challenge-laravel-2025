@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    container_name: olaclick_app
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+
+  web:
+    image: nginx:alpine
+    container_name: olaclick_web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./_infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  db:
+    image: postgres:15
+    container_name: olaclick_db
+    environment:
+      POSTGRES_DB: olaclick
+      POSTGRES_USER: olaclick
+      POSTGRES_PASSWORD: olaclick
+    ports:
+      - "54321:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: olaclick_redis
+    #ports:
+    #  - "6379:6379"
+
+volumes:
+  db_data:
